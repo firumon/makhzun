@@ -9,10 +9,10 @@
     ],
     "require": {},
 	"extra": {
-    "laravel": {
-        "providers": [
-            "Firumon\\Makhzun\\ServiceProvider"
-        ]
-    }
-},
+		"laravel": {
+			"providers": [
+				"Firumon\\Makhzun\\ServiceProvider"
+			]
+		}
+	}
 }
