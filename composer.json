@@ -1,0 +1,18 @@
+{
+    "name": "firumon/makhzun",
+    "type": "laravel-package",
+    "authors": [
+        {
+            "name": "Firose Hussain",
+            "email": "me@firumon.com"
+        }
+    ],
+    "require": {},
+	"extra": {
+    "laravel": {
+        "providers": [
+            "Firumon\\Makhzun\\ServiceProvider"
+        ]
+    }
+},
+}
