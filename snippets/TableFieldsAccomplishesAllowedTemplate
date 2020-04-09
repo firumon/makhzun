@@ -1,0 +1,21 @@
+$data = collect((new \Firumon\Makhzun\Seeder\HeaderSeeder)->records())
+        ->groupBy(function($record){ return $record[0]; })
+        ->mapWithKeys(function($col,$table){
+            return [$table => $col->groupBy(function($ary){
+                return $ary[3] === 'name' ? 'name' : substr($ary[3],0,-1);
+            })];
+        })
+        ->mapWithKeys(function($col,$table){
+            $template = \Firumon\Makhzun\Table::$tables[$table][1];
+            $index = array_search($template,\Firumon\Makhzun\Table::$detail_names);
+            return [$table => $col->mapWithKeys(function($ary,$field)use($index,$table,$template){
+                $count = count($ary);
+                $allowed = ($field === 'name')
+                    ? 1
+                    : \Firumon\Makhzun\Table::$details_structure[$field][$index];
+                $status = ($count <= $allowed) ? "YA" : "NO";
+                return ["$status $table.$field" => "$count/$allowed " . ($status === 'NO' ? "($template)" : '')];
+            })];
+        })
+        ->collapse()
+        ->toArray();

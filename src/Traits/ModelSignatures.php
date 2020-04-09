@@ -2,16 +2,18 @@
 
     namespace Firumon\Makhzun\Traits;
 
+    use Firumon\Makhzun\Model\Model;
     use Illuminate\Support\Facades\Auth;
 
     trait ModelSignatures
     {
 
-        protected static function boot()
+        protected static function bootModelSignatures()
         {
-            parent::boot();
-            static::creating(function($Model){ $Model->setAttribute('created_by',Auth::id()); });
-            static::updating(function($Model){ $Model->setAttribute('updated_by',Auth::id()); });
-            static::deleting(function($Model){ $Model->setAttribute('deleted_by',Auth::id()); });
+            if(Auth::id()){
+                static::creating(function(Model $Model){ $Model->setAttribute('created_by',Auth::id()); });
+                static::updating(function(Model $Model){ $Model->setAttribute('updated_by',Auth::id()); });
+                static::deleting(function(Model $Model){ $Model->setAttribute('deleted_by',Auth::id()); });
+            }
         }
     }
