@@ -1,53 +1,58 @@
 @extends('Makhzun::products.layout')
 @php
-$lists = [
-    [
-        'records' => $products,
-        'criteria' => ['Name' => 'PRDNAME','Code' => 'PRDCODE','UOM' => 'PRDUOM'],
-        'actions' => ['page.product.details00{ID}' => 'ABC'],
-    ],
-
-];
-
+$item = 'product'; $itemTitle = \Illuminate\Support\Str::of(MRN($item))->title()->__toString(); $itemTitle2 = \Illuminate\Support\Str::plural($itemTitle);
+$criteria = ['Name' => 'PRDNAME','Code' => 'PRDCODE','Stock' => 'PRDSTOCK'];
+$actions = ['page.product.details' => 'More','javascript:updateProduct("--id--")' => 'Update'];
+$modalActions = ['text' => 'Update', 'action' => 'doUpdateProduct()'];
 @endphp
+
+
+@section('modal')
+    <x-makhzun-modal :title="'Update '.MRN($item).' Details'" centered :actions="$modalActions">
+        <x-makhzun-form code="UPDATEPRODUCT" :card="false" name="update-product-form"></x-makhzun-form>
+    </x-makhzun-modal>
+@endsection
+
+@section('content-header')
+    <h4>{{ $itemTitle }}</h4>
+@stop
 
 @section('content')
     <div class="row">
-        <div class="col-md-3 col-sm-6 col-12">
-            <x-makhzun-box text="Total Products" number="" id="prdcount"></x-makhzun-box>
-            <x-makhzun-api code="PRDCOUNT"></x-makhzun-api>
-        </div>
-        <div class="col-md-3 col-sm-6 col-12">
-            <x-makhzun-box text="Total Stock Value" number="" id="prdstockvalue"></x-makhzun-box>
-            <x-makhzun-api code="PRDSTOCKVALUE"></x-makhzun-api>
-        </div>
-        <div class="col-md-3 col-sm-6 col-12">
-            <x-makhzun-box text="Non Stock Products" number="" id="prdnonstockcount"></x-makhzun-box>
-            <x-makhzun-api code="PRDNONSTOCKCOUNT"></x-makhzun-api>
-        </div>
-    </div>
-
-    <hr>
-
-    <div class="row">
-        <div class="col-12 col-md-4 col-xl-3">
-            <x-makhzun-form code="QUICKADDPRODUCT" color="primary"></x-makhzun-form>
-        </div>
-        <div class="col-12 col-md-8 col-xl-9">
-            <x-makhzun-card color="primary" title="Available Products">
-                <x-makhzun-table :records="$lists[0]['records']" :criteria="$lists[0]['criteria']" :actions="$lists[0]['actions']" iteration sm></x-makhzun-table>
+        @unless(request()->filled('search_text'))
+            <div class="col-12 col-md-6">
+                <x-makhzun-form code="QUICKADDPRODUCT" color="primary"></x-makhzun-form>
+            </div>
+            <div class="col-6 col-md-3">
+                <x-makhzun-box :text="'Total ' . $itemTitle2" number="" id="prdcount"></x-makhzun-box><x-makhzun-api code="PRDCOUNT"></x-makhzun-api>
+                <x-makhzun-box text="Total Stock Value" number="" id="prdstockvalue"></x-makhzun-box><x-makhzun-api code="PRDSTOCKVALUE"></x-makhzun-api>
+                <x-makhzun-box :text="'Non Stock ' . $itemTitle2" number="" id="prdnonstockcount"></x-makhzun-box><x-makhzun-api code="PRDNONSTOCKCOUNT"></x-makhzun-api>
+            </div>
+            <div class="col-6 col-md-3"></div>
+        @endunless
+        <div class="col-12">
+            <x-makhzun-card color="primary" :title="$itemTitle2">
+                <x-makhzun-table :records="$products" :criteria="$criteria" :actions="$actions" iteration sm></x-makhzun-table>
+                <x-slot name="footer"><div class="float-right">{!! $links !!}</div></x-slot>
             </x-makhzun-card>
         </div>
     </div>
 @stop
 
-@section('right-sidebar')
-    <div class="p-3 control-sidebar-content">
-        <x-makhzun-input name="PRDPRICE" label="Product Price" type="number" value="234.8929"></x-makhzun-input>
-        <x-makhzun-input name="CONTACTMAIL" label="Contact Email" type="email" value="i@fr.in"></x-makhzun-input>
-        <x-makhzun-input name="CPODATE" label="Customer PO Date" type="date" :value="date('Y-m-d')"></x-makhzun-input>
-        <x-makhzun-input name="SLSDATE" label="Sales Date" type="datetime" :value="date('Y-m-d H:i:s')"></x-makhzun-input>
-        <x-makhzun-input name="SLSTIME" label="Sales Time" type="time" :value="date('H:i:s')"></x-makhzun-input>
-        <x-makhzun-input name="PRD" label="Select Product" type="select" :options="Firumon\Makhzun\Model\Product::all()"></x-makhzun-input>
-    </div>
-@stop
+@push('js')
+    <script type="text/javascript">
+
+        function updateProduct(id) {
+            MODAL.modal('show'); modalOverlay(true);
+            fetchModel('Product',id,function(r){
+                formValues('update-product-form',r);
+                modalOverlay(false);
+            })
+        }
+
+        function doUpdateProduct() {
+            $('[name="update-product-form"]').submit();
+        }
+
+    </script>
+@endpush

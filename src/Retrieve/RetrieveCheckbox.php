@@ -7,16 +7,19 @@
 
     class RetrieveCheckbox implements RetrieveInterface
     {
-        private static $wrapBegin = '[', $wrapEnd = ']', $delimiter = '|';
+        private static $wrapBegin = '[', $wrapEnd = ']', $delimiter = ',';
 
         public function retrieve($value, $d0 = null, $d1 = null, $d2 = null, $d3 = null, $d4 = null)
         {
             $IDs = self::decodeOption($value);
-            return Option::find($IDs)->pluck('option')->toArray();
+            $object = Option::find($IDs);
+            $field = $value;
+            $value = $object ? $object->pluck('option')->implode(',') : null;
+            return compact('value','object','field');
         }
 
-        public static function encodeOptions(array $value){
-            return self::$wrapBegin . implode(self::$delimiter,$value) . self::$wrapEnd;
+        public static function encodeOptions($value){
+            return self::$wrapBegin . implode(self::$delimiter,(array) $value) . self::$wrapEnd;
         }
 
         public static function decodeOption($value){

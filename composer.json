@@ -14,5 +14,10 @@
 				"Firumon\\Makhzun\\ServiceProvider"
 			]
 		}
-	}
+	},
+    "autoload": {
+        "files": [
+            "Helper.php"
+        ]
+    }
 }

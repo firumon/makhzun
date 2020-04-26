@@ -19,6 +19,11 @@
             return [
                 ['OPTPRDUOM','Piece',1],
                 ['OPTPRDUOM','Box',2],
+                ['OPTCONTTYPE','Company',1],
+                ['OPTCONTTYPE','Person',2],
+                ['OPTCONTNAT',config('makhzun.resource_name.customer'),1],
+                ['OPTCONTNAT',config('makhzun.resource_name.supplier'),2],
+                ['OPTCONTNAT','Both',3],
                 ['OPTVCHRTYPE','Purchase',1],
                 ['OPTVCHRTYPE','Others',2],
                 ['OPTVCHRPAYST','Pending',1],

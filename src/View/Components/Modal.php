@@ -9,10 +9,10 @@ class Modal extends Component
 {
     use ComponentBgsTrait;
 
-    public $title, $close, $actions = [], $centered = false, $id;
-    private static $args = ['title','close','id','actions','centered'];
+    public $title, $close, $id, $actions = [], $centered = false, $scrollable = false;
+    private static $args = ['title','close','id','actions','centered','scrollable'];
 
-    public function __construct($title = '', $close = true, $actions = [], $id = null, $centered = false)
+    public function __construct($title = '', $close = true, $actions = [], $id = null, $centered = false, $scrollable = false)
     {
         if(!empty($actions)){ if(empty($actions[0])) $actions = [$actions]; }
         if(!$id) $id = 'modal-' . time();

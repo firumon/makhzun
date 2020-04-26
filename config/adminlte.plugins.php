@@ -2,6 +2,17 @@
 
     return [
         [
+            'name' => 'Lodash',
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/Lodash/lodash.min.js',
+                ],
+            ],
+        ],
+        [
             'name' => 'Daterangepicker',
             'active' => false,
             'files' => [
@@ -43,6 +54,11 @@
                     'location' => 'js/Select2/select2.full.min.js',
                 ],
                 [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/Select2/select2.defaults.js',
+                ],
+                [
                     'type' => 'css',
                     'asset' => true,
                     'location' => 'css/Select2/select2.min.css',
@@ -73,6 +89,17 @@
                     'type' => 'css',
                     'asset' => true,
                     'location' => 'css/Toastr/toastr.min.css',
+                ],
+            ],
+        ],
+        [
+            'name' => 'BSCard',
+            'active' => false,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/BS/Card.js',
                 ],
             ],
         ],

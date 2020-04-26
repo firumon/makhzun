@@ -7,9 +7,11 @@
 
     class RetrieveTable implements RetrieveInterface
     {
-        public function retrieve($value, $table = null, $d1 = null, $d2 = null, $d3 = null, $d4 = null)
+        public function retrieve($value, $table = null, $d1 = 'name', $d2 = null, $d3 = null, $d4 = null)
         {
-            $model = Str::of($table)->singular()->studly()->__toString();
-            return (new RetrieveModel)->retrieve($value,$model);
+            $object = DB::table($table)->find($value);
+            $field = $value;
+            $value = $object ? $object->$d1 : null;
+            return compact('value','object','field');
         }
     }

@@ -18,7 +18,7 @@
             $this->mime = $file->getMimeType();
             $this->mime_client = $file->getClientMimeType();
             $this->size = $file->getSize();
-            $this->extension = $file->getExtension();
+            $this->extension = $file->extension();
         }
 
         private function doUpload(){

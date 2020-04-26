@@ -2,7 +2,7 @@
 
 @php
 $criteria = ['ID' => 'id', 'Name' => 'option', 'Order' => 'order', 'Status' => 'status'];
-$actions = ['javascript:updateCategory("{ID}")' => 'Update']
+$actions = ['javascript:updateCategory("--id--")' => 'Update']
 @endphp
 
 @section('content')

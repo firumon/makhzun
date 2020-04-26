@@ -7,9 +7,12 @@
 
     class RetrieveModel implements RetrieveInterface
     {
-        public function retrieve($value, $model = null, $d1 = null, $d2 = null, $d3 = null, $d4 = null)
+        public function retrieve($value, $model = null, $d1 = 'name', $d2 = null, $d3 = null, $d4 = null)
         {
             $class = Str::of(Model::class)->beforeLast('\\')->append('\\',$model)->__toString();
-            return (new $class)->find($value);
+            $object = (new $class)->find($value);
+            $field = $value;
+            $value = $object ? $object->$d1 : null;
+            return compact('value','object','field');
         }
     }

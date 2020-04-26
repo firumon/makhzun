@@ -11,6 +11,6 @@ class Header extends Model
     protected static function boot()
     {
         parent::boot();
-        static::saved(function($model){ Cache::forget('header_file'); Cache::forget('header_table_' . $model->table); });
+        static::saved(function($model){ Cache::forget('header_file'); Cache::forget('header_options'); Cache::forget('header_table_' . $model->table); });
     }
 }

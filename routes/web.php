@@ -16,9 +16,10 @@
             foreach (config('makhzun.page_routes') as $prefix => $routes){
                 Route::prefix($prefix)->group(function()use($routes){
                     foreach ($routes as $route){
-                        $method = isset($route[3]) ? $route[3] : 'get';
+                        $method = isset($route[3]) ? ($route[3] === 'any' ? 'match' : $route[3]) : 'get';
                         $name = isset($route[2]) ? $route[2] : '-';
-                        Route::$method($route[0],$route[1])->name($name);
+                        $args = array_merge($method === 'match' ? [['get','post']] : [],[$route[0]],[$route[1]]);
+                        Route::$method(...$args)->name($name);
                     }
                 });
             }

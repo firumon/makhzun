@@ -11,7 +11,8 @@ class Input extends Component
     public $textTypes = ['text','number','email','hidden','password','date','time','datetime'];
 
     public $inputTypes = ['checkbox','radio','file'];
-    public $selectTypes = ['select','option','table','model','multiple'];
+    public $selectTypes = ['select','status','option','table','model','multiple','custom'];
+    public $locationTypes = ['country','state','city'];
     public $textareaTypes = ['textarea'];
 
     public $label = null, $type = 'text', $name = '', $value = '', $horizontal = false, $options = [], $multiple = false, $fetch = [];
@@ -30,13 +31,14 @@ class Input extends Component
     {
         $this->name = $name; $this->type = $type; $this->label = $label; $this->multiple = $multiple;
         if($this->type === 'multiple') { $this->multiple = true; $this->type = 'checkbox'; }
+        if($this->type === 'status') { $options = mConfig('FORM_STATUS_OPTIONS'); }
         if($value) $this->value = $value;
         if($horizontal) $this->horizontal = is_bool($horizontal) ? 3 : intval($horizontal);
         if(in_array($type,$this->optionTypes())){
             if(!empty($options)){
                 $options = ($options instanceof Collection) ? $options : collect($options);
                 if($options->isNotEmpty()) $this->setOptions($options,$optionLabel);
-            } elseif ($d0) {
+            } elseif ($d0 || $type === 'country') {
                 $this->fetch = [$type,$d0,$d1];
             }
         }
@@ -47,11 +49,12 @@ class Input extends Component
         $type = $this->type;
         foreach ($this->tags as $tag) if(in_array($type,$this->{$tag.'Types'})) return $tag;
         if(in_array($type,$this->textTypes)) return 'input';
+        if(in_array($type,$this->locationTypes)) return 'select';
         return 'input';
     }
 
     public function optionTypes(){
-        return array_diff(array_merge($this->selectTypes,$this->inputTypes),['file']);
+        return array_diff(array_merge($this->selectTypes,$this->inputTypes,$this->locationTypes),['file']);
     }
 
     public function setOptions($options,$option_label){

@@ -32,15 +32,13 @@
             Blueprint::macro('option',function($field = 'option'){ $this->foreignField($field,'options','set null'); });
         }
         private function extras(){
-            $criteria = Table::$details_structure;
-            Blueprint::macro('extras',function($length = 'normal')use($criteria){
-                $pos = array_search($length,Table::$detail_names);
-                foreach ($criteria as $field => $data){
-                    for($i = 0; $i < $data[$pos]; $i++){
-                        if(array_key_exists(2,$data) && $data[2] === true) call_user_func_array([$this,$data[0]],array_merge([$field.$i],explode(",",$data[1])))->nullable()->index();
-                        else if($data[0] === 'foreignField') call_user_func_array([$this,$data[0]],array_merge([$field.$i],explode(",",$data[1])));
-                        else call_user_func_array([$this,$data[0]],array_merge([$field.$i],explode(",",$data[1])))->nullable();
-                    }
+            Blueprint::macro('pack',function($item,$count){
+                $setup = Table::$details_structure[$item];
+                $type = $setup[0]; $args1 = array_slice($setup,1); $index = in_array($item,Table::$index_fields);
+                $func = [$this,$type];
+                for($i = 0; $i < $count; $i++){
+                    $name = $item . $i; $args = array_merge([$name],$args1);
+                    $blueprint = call_user_func_array($func,$args)->nullable(); if($index) $blueprint->index();
                 }
             });
         }
@@ -55,20 +53,20 @@
             });
         }
         private function master(){
-            Blueprint::macro('master',function($extras = 'normal'){
+            Blueprint::macro('master',function($fields){
                 $this->id();
                 $this->name();
-                $this->extras($extras);
+                foreach ($fields as $field => $count) $this->pack($field,$count);
                 $this->status();
                 $this->audit();
             });
         }
         private function detail(){
-            Blueprint::macro('detail',function($extras,$belongs,$name = false){
+            Blueprint::macro('detail',function($belongs,$fields,$name = false){
                 $this->id();
                 if($name) $this->name();
                 $this->foreignField('belongs',$belongs);
-                $this->extras($extras);
+                foreach ($fields as $field => $count) $this->pack($field,$count);
                 $this->status();
                 $this->audit();
             });

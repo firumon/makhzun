@@ -2,71 +2,62 @@
 
 namespace Firumon\Makhzun\Controller;
 
+use Firumon\Makhzun\Model\Group;
 use Firumon\Makhzun\Model\Header;
 use Firumon\Makhzun\Model\Option;
 use Firumon\Makhzun\Model\Product;
+use Firumon\Makhzun\Model\Tax;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
     public function index(){
-        if(request()->getMethod() === 'POST'){
-            $data = self::requestToDB(Product::class);
-            request()->session()->flash('toastr', ($data['status']) ? ['success' => 'Product '.$data['type'].'d successfully!'] : ['error' => 'Product '.$data['type'].' error, Please try again!!']);
-        }
         $products = Product::latest()->paginate(15);
         $links = $products->withQueryString()->links();
         return view('Makhzun::products.index',compact('products','links'));
     }
 
-    public function category(){
-        if(request()->getMethod() === 'POST'){
-            $data = self::requestToDB(Option::class,request()->only(request('_record_id',null) ? ['option','order','status'] : ['code','option','order']));
-            request()->session()->flash('toastr', ($data['status']) ? ['success' => 'Category '.$data['type'].'d successfully!'] : ['error' => 'Category '.$data['type'].' error, Please try again!!']);
-
-//            $this->createOrUpdate(Option::class,request()->only(['option','order','status']));
-            /*if(request()->_record_id){
-                $Option = Option::where('id',request()->_record_id)->update(request()->only(['option','order','status']));
-                if($Option) request()->session()->flash('toastr', ['success' => 'Category updated successfully!']);
-                else request()->session()->flash('toastr', ['error' => 'Error in updating category, Please try again!']);
-            } else {
-                $Option = Option::create(request()->only(['code','option','order']));
-                if($Option) request()->session()->flash('toastr', ['success' => 'Category added successfully!']);
-                else request()->session()->flash('toastr', ['error' => 'Error in adding category, Please try again!']);
-            }*/
-        }
-//        $categories = Option::where('code','OPTPRDCATGRY')->orderBy('order')->toSql(); dd($categories);
-        $categories = Option::where('code','OPTPRDCATGRY')->orderBy('order')->get();
-//        $categories = request('search_text') ? $categories->where('option','like','%'.request('search_text').'%')->get() : $categories->get();
-        return view('Makhzun::products.category',compact('categories'));
-    }
-
-    public function brand(){
-        if(request()->getMethod() === 'POST'){
-            if(request()->_record_id){
-                $Option = Option::where('id',request()->_record_id)->update(request()->only(['option','order','status']));
-                if($Option) request()->session()->flash('toastr', ['success' => 'Brand updated successfully!']);
-                else request()->session()->flash('toastr', ['error' => 'Error in updating brand, Please try again!']);
-            } else {
-                $Option = Option::create(request()->only(['code','option','order']));
-                if($Option) request()->session()->flash('toastr', ['success' => 'Brand added successfully!']);
-                else request()->session()->flash('toastr', ['error' => 'Error in adding brand, Please try again!']);
-            }
-        }
-        $brands = Option::where('code','OPTPRDBRAND')->orderBy('order')->get();
-//        $brands = request('search_text') ? $brands->where('option','like','%'.request('search_text').'%')->get() : $brands->get();
-        return view('Makhzun::products.brand',compact('brands'));
-    }
-
     public function create(){
-        $headers = Header::where('table','products')->get();
-        return view('Makhzun::products.create',compact('headers'));
+        if(request()->getMethod() === 'POST') {
+            self::FlashToastr(self::ProcessForm(Product::class), 'product');
+            return redirect()->back();
+        }
+        return view('Makhzun::products.create');
+    }
+    public function group(){
+        $master = request()->segment(5); $item = mConfig('PRODUCT_GROUP_NAME.PRDGRP' . request()->segment(5));
+        if(request()->getMethod() === 'POST'){
+            $form_fields = ['master','name','parent','grand','order','status'];
+            self::FlashToastr(self::ProcessForm(Group::class,request()->only($form_fields)),$item);
+            return redirect()->back();
+        }
+        return view('Makhzun::products.group',['item' => $item, 'master' => $master]);
+    }
+    public function uom(){
+        if(request()->getMethod() === 'POST'){
+            $form_fields = ['code','option','order','status'];
+            self::FlashToastr(self::ProcessForm(Option::class,request()->merge(['code' => 'OPTPRDUOM'])->only($form_fields)),'UOM');
+        }
+        return view('Makhzun::products.uom',['records' => Option::where('code','OPTPRDUOM')->get()]);
+    }
+    public function tax(){
+        $taxoncode = settings('SETTAXONCODE'); $on = mConfig('PRODUCT_GROUP_NAME.' . $taxoncode); $no = substr($taxoncode,-1);
+        if(request()->getMethod() === 'POST'){
+            foreach (request()->tax as $id => $update)
+                Group::where(function($Q)use($no,$id){ $Q->whereNull('parent')->where(['master' => $no, 'id' => $id]); })
+                    ->orWhere(function($Q)use($no,$id){ $Q->whereNotNull('parent')->where(['master' => $no, 'grand' => $id]); })
+                    ->update($update);
+            self::FlashToastr(['status' => 'success','type' => 'update'],'Tax Details');
+        }
+        return view('Makhzun::products.tax',['taxes' => Tax::whereGroup(1)->whereStatus('Active')->get(),'groups' => Group::whereNull('parent')->whereMaster($no)->get(), 'on' => $on]);
     }
 
-    public function getProductsCount(){ return [Product::where('status','Active')->count()]; }
+    public function getProductsCount(){
+        return [Product::where('status','Active')->count()];
+    }
     public function getProductsStockValue(){
         $header = Header::where(['table' => 'products'])->pluck('field','code')->toArray();
-        $query = "SELECT SUM(`{$header['PRDPRICE01']}`*`{$header['PRDSTOCK']}`) AS 'value' FROM products GROUP BY `status` HAVING `status` = 'Active'";
+        $query = "SELECT SUM(`{$header['PRDPRICE']}`*`{$header['PRDSTOCK']}`) AS 'value' FROM products GROUP BY `status` HAVING `status` = 'Active'";
         return DB::select($query);
     }
     public function getNonStockProductsCount(){

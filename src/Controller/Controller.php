@@ -3,39 +3,27 @@
 namespace Firumon\Makhzun\Controller;
 
 use App\Http\Controllers\Controller as BaseController;
-use Firumon\Makhzun\Model\Header;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class Controller extends BaseController
 {
 
-    public static function codeToField($request){
-        return Header::whereIn('code',array_keys($request))->get()
-            ->mapWithKeys(function($item)use($request){
-                return [$item->field => $request[$item->code]];
-            })
-            ->toArray();
+    public static function ProcessForm($class,$attributes = []){
+        if(request()->getMethod() !== 'POST') return true;
+        $method = (request()->has('_record_id') && request()->_record_id) ? 'update' : 'create';
+        $attributes = empty($attributes) ? request()->all() : $attributes;
+        $status = ($method === 'update') ? $class::find(request()->_record_id)->$method($attributes) : $class::$method($attributes);
+        return ['status' => !!$status, 'result' => $status, 'type' => $method];
     }
 
-    public static function requestToDB($model,$fields = []){
-        $record_id = request('_record_id',null);
-        $fields = empty($fields) ? request()->all() : $fields; $type = 'create';
-        $model = (stripos($model,"\\") !== false) ? $model : Str::of(__NAMESPACE__)->replace('Controller','Model')->append("\\",$model)->__toString();
-        if($record_id){
-            $type = 'update';
-            $Model = new $model;
-            $key = $Model->getKeyName();
-            $sModel = $model::where($key,$record_id)
-                ->update(
-                    ($Model->useModelCreate)
-                        ? self::codeToField($fields)
-                        : $fields
-                );
-        }
-        else $sModel = $model::create($fields);
-        return ['type' => $type,'model' => $sModel, 'status' => !!$sModel];
+    public static function FlashToastr($status,$item,$with = []){
+        if(is_bool($status)) return;
+        $toastr = ($status['status']) ? 'success' : 'error';
+        $message = $status['type'] === 'update'
+            ? ($status['status'] ? Str::ucfirst($item) . ' Updated Successfully!!' : 'Error in updating ' . Str::lower($item) . ' details. Please try again.!')
+            : ($status['status'] ? Str::ucfirst($item) . ' Created Successfully!!' : 'Error in creating new ' . Str::lower($item) . '. Please try again.!');;
+        request()->session()->flash('toastr', [$toastr => $message]);
+        return redirect()->back()->with($with);
     }
-
 
 }

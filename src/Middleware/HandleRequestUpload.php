@@ -18,15 +18,16 @@ class HandleRequestUpload
      */
     public function handle($request, Closure $next)
     {
-        $header_file = Cache::rememberForever('header_file',function (){
-            return Header::select('code','d0','d1')->where('type','file')->get()->mapWithKeys(function ($data){
-                return [$data->code => ['disk' => $data->d0 ?: $this->disk, 'path' => $data->d1 ?: $this->path]];
-            })->toArray();
-        });
-        if($request->hasAny(array_keys($header_file))){
-            foreach ($header_file as $code => $DiskPath)
-                if($request->hasFile($code))
-                    $request->replace([ $code => Uploader::upload($request->$code,$DiskPath)]);
+        if($request->files->count()){
+            $header_file = Cache::rememberForever('header_file',function (){
+                return Header::select('code','d0','d1')->where('type','file')->get()->mapWithKeys(function ($data){
+                    return [$data->code => ['disk' => $data->d0 ?: $this->disk, 'path' => $data->d1 ?: $this->path]];
+                })->toArray();
+            });
+            foreach ($request->files as $code => $uploadedFile){
+                if(!isset($header_file[$code])) continue; $DiskPath = $header_file[$code]; $var = $code . '_ID';
+                $$var = Uploader::upload($request->$code,$DiskPath); $request->merge(compact($var));
+            }
         }
         return $next($request);
     }

@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
              OptionSeeder::class,
              HeaderSeeder::class,
              SettingsSeeder::class,
+             GroupSeeder::class,
              ApiSeeder::class,
              FormSeeder::class,
          ]);
